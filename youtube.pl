@@ -13,9 +13,12 @@ my %IRSSI = (
     authors     => '31d1',
     contact     => '',
     name        => '',
-    description => 'youtube',
+    description => 'print some info about youtube links',
     license     => '',
 );
+
+# channels to publicly display info in
+my @chans = ('#mefi', '#dongs', '#sippin');
 
 print CLIENTCRAP "youtube.pl $VERSION loaded.";
 print CLIENTCRAP "/set youtube on|off";
@@ -62,12 +65,13 @@ sub youtube {
 }
 
 sub dispatch {
+    return if not Irssi::settings_get_bool("youtube");
     my ($server, $msg, $nick, $mask, $chan) = @_;
     $chan = $nick if not $chan;
     my $out = youtube(split(/ /, $msg));
     return if not $out;
     my $win = Irssi::active_win();
-    if( $chan eq "#mefi" ) {
+    if( grep(/^$chan$/, @chans) ) {
         $server->command("/MSG $chan YOUTUBE: $out");
     } else {
         $win->print($out, "CLIENTCRAP");
