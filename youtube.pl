@@ -41,9 +41,7 @@ sub youtube {
     # some string split on whitespace pls
     my ($url, $content, %meta, $tag, @a);
     for (@_) {
-        if( $_ =~ /^http:\/\/...?\.youtube\.com/ ) {
-            $url = $_;
-        }
+        $url = $_ if( $_ =~ /^http:\/\/...?\.youtube\.com/ );
     }
     $url || return "";
 
