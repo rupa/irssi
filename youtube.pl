@@ -4,6 +4,7 @@ use strict;
 use Irssi;
 use POSIX;
 use LWP::Simple;
+use HTML::Entities;
 use HTML::TreeBuilder;
 use Encode;
 use vars qw($VERSION %IRSSI);
@@ -70,9 +71,9 @@ sub dispatch {
     return if not $out;
     my $win = Irssi::active_win();
     if( grep(/^$chan$/, @chans) ) {
-        $server->command("/MSG $chan YOUTUBE: $out");
+        $server->command("/MSG $chan YOUTUBE: ".decode_entities($out));
     } else {
-        $win->print($out, "CLIENTCRAP");
+        $win->print(decode_entities($out), "CLIENTCRAP");
     }
 }
 
