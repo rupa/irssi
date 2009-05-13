@@ -11,7 +11,7 @@ use vars qw($VERSION %IRSSI);
 
 my $VERSION = '0.01';
 my %IRSSI = (
-    authors     => '31d1',
+    authors     => 'rupa',
     contact     => '',
     name        => '',
     description => 'print some info about youtube links',
