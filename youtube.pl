@@ -59,8 +59,10 @@ sub youtube {
         } elsif( $tag eq 'description' ) {
             push @a, $tag.": ".$content;
         }
-    } 
-    return join(" ", @a);
+    }
+    my $out = join(" ", @a);
+    $out =~ s/\n/ /g;
+    return $out;
 }
 
 sub dispatch {
