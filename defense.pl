@@ -32,22 +32,37 @@ sub onmode {
 
     return unless grep(/$chan/, @defensechans);
 
-    return unless $mode =~ /\Q$server->{nick}\E/;
-
     # get unbanned
-    if( $mode =~ /^\+b/ ) {
+    if( $mode =~ /^\+b (.*)/ ) {
+
+        my $found;
+        if( $mode =~ /\Q$server->{nick}\E/ ) {
+            $found = 1;
+        } else {
+            my $chanobj = $server->channel_find($chan);
+            my $nickobj = $chanobj->nick_find_mask($1);
+            return unless $nickobj;
+            if( $nickobj->{nick} eq $server->{nick} ) {
+                $found = 1;
+            }
+        }
+        return if not $found;
+
         $server->command("/msg Chanserv unban $chan $server->{nick}");
-        Irssi::timeout_add_once($hang, "frigth_back", "$server->{tag}|/join $chan");
+        Irssi::timeout_add_once($hang, "frigth_back",
+                                "$server->{tag}|/join $chan");
 
         return unless Irssi::settings_get_bool("frigth_back");
-        Irssi::timeout_add_once($hang, "frigth_back", "$server->{tag}|/kick $chan $setby");
+        Irssi::timeout_add_once($hang, "frigth_back",
+                                "$server->{tag}|/kick $chan $setby");
 
     # regain ops
-    } elsif( $mode =~ /^\-o/ ) {
+    } elsif( $mode =~ /^\-o/ && $mode =~ /\Q$server->{nick}\E/ ) {
         $server->command("/msg Chanserv op $chan $server->{nick}");
 
         return unless Irssi::settings_get_bool("frigth_back");
-        Irssi::timeout_add_once($hang, "frigth_back", "$server->{tag}|/kick $chan $setby");
+        Irssi::timeout_add_once($hang, "frigth_back",
+                                "$server->{tag}|/kick $chan $setby");
     }
 
 }
