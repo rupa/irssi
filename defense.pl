@@ -37,17 +37,17 @@ sub onmode {
     # get unbanned
     if( $mode =~ /^\+b/ ) {
         $server->command("/msg Chanserv unban $chan $server->{nick}");
-        Irssi::timeout_add_once($hang, "fk_u", "$server->{tag}|/join $chan");
+        Irssi::timeout_add_once($hang, "frigth_back", "$server->{tag}|/join $chan");
 
         return if not Irssi::settings_get_bool("frigth_back");
-        Irssi::timeout_add_once($hang, "fk_u", "$server->{tag}|/kick $chan $setby");
+        Irssi::timeout_add_once($hang, "frigth_back", "$server->{tag}|/kick $chan $setby");
 
     # regain ops
     } elsif( $mode =~ /^\-o/ ) {
         $server->command("/msg Chanserv op $chan $server->{nick}");
 
         return if not Irssi::settings_get_bool("frigth_back");
-        Irssi::timeout_add_once($hang, "fk_u", "$server->{tag}|/kick $chan $setby");
+        Irssi::timeout_add_once($hang, "frigth_back", "$server->{tag}|/kick $chan $setby");
     }
 
 }
