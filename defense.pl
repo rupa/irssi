@@ -22,7 +22,7 @@ my @defensechans = ("#mefi", "#dongs");
 my $hang = 2000;
 
 sub frigth_back {
-    my ($tag, $cmd) = split(/\|/, @_);
+    my ($tag, $cmd) = split(/\|/, join(" ", @_));
     my $server = Irssi::server_find_tag($tag);
     $server->command($cmd);
 }
@@ -39,14 +39,14 @@ sub onmode {
         $server->command("/msg Chanserv unban $chan $server->{nick}");
         Irssi::timeout_add_once($hang, "frigth_back", "$server->{tag}|/join $chan");
 
-        return if not Irssi::settings_get_bool("frigth_back");
+        return unless Irssi::settings_get_bool("frigth_back");
         Irssi::timeout_add_once($hang, "frigth_back", "$server->{tag}|/kick $chan $setby");
 
     # regain ops
     } elsif( $mode =~ /^\-o/ ) {
         $server->command("/msg Chanserv op $chan $server->{nick}");
 
-        return if not Irssi::settings_get_bool("frigth_back");
+        return unless Irssi::settings_get_bool("frigth_back");
         Irssi::timeout_add_once($hang, "frigth_back", "$server->{tag}|/kick $chan $setby");
     }
 
