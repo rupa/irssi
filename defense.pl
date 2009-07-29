@@ -20,8 +20,7 @@ print CLIENTCRAP "defense.pl $VERSION loading.";
 my @defensechans = ("#mefi", "#dongs");
 
 sub frigth_back {
-    my ($data) = @_;
-    my ($tag, $cmd) = split(/\|/, $data);
+    my ($tag, $cmd) = split(/\|/, $@_);
     my $server = Irssi::server_find_tag($tag);
     $server->command($cmd);
 }
