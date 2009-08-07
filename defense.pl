@@ -18,8 +18,8 @@ print CLIENTCRAP "/set frigth_back [on/off] - toggle /kick your attacker.";
 
 # chans to defend yourself in
 my @defensechans = ("#mefi", "#dongs");
-# give Chanserv some time to op us before we frigth_back, in ms
-my $hang = 2000;
+# give Chanserv a chance to respond before we frigth back, in ms
+my $hang = 3000;
 
 sub frigth_back {
     my ($tag, $cmd) = split(/\|/, join(" ", @_));
@@ -53,7 +53,7 @@ sub onmode {
                                 "$server->{tag}|/join $chan");
 
         return unless Irssi::settings_get_bool("frigth_back");
-        Irssi::timeout_add_once($hang, "frigth_back",
+        Irssi::timeout_add_once($hang + 2000, "frigth_back",
                                 "$server->{tag}|/kick $chan $setby");
 
     # regain ops
