@@ -6,7 +6,7 @@ $VERSION = "0.0.1";
 print CLIENTCRAP "defense.pl $VERSION loading.";
 print CLIENTCRAP "/set frigth_back [on/off] - toggle /kick your attacker.";
 %IRSSI = (
-    authors     => "31d1",
+    authors     => "rupa",
     contact     => "",
     name        => "",
     description => "stop a bus",
