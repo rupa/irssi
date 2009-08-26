@@ -15,15 +15,19 @@ $VERSION = '0.01';
   license => ''
 );
 
+# use a cached copy until number of qotes falls below $min
+my $min = 30;
+
 print CLIENTCRAP "/4ch [search]";
+print CLIENTCRAP "if [search] not found, use a random quote";
 
 my @anons = ();
-my $min = 30;
 
 sub getanons {
     # get all the <blockquotes?> out of /b/
     my $html = get("http://img.4chan.org/b/imgboard.html");
     return if( !defined $html );
+    # as_text just changes <br />'s to ''
     $html =~ s/(<br \/>)+/ /g;
     my $tree = HTML::TreeBuilder->new;
     $tree->parse($html);
@@ -63,7 +67,6 @@ sub getone {
     $anon =~ s/\/b\//$channel/g if $channel;
 
     $server->command("/MSG $channel $anon");
-
 
 }
 
