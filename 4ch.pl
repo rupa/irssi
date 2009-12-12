@@ -10,7 +10,7 @@ $VERSION = '0.01';
 %IRSSI = (
   authors => 'rupa',
   contact => '',
-  description => 'spam your channel with random 4chan drollery',
+  description => 'spam your channel with random 4chan nonsense',
   name => '',
   license => ''
 );
