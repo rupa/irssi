@@ -62,6 +62,8 @@ sub youtube {
     }
     my $out = join(" ", @a);
     $out =~ s/\n/ /g;
+    $out =~ s/<br>/ /g;
+    $out =~ s/http:\/\///g;
     return $out;
 }
 
