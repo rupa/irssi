@@ -31,4 +31,6 @@ sub redact_by_nick {
 }
 
 Irssi::signal_add('message public', 'redact_by_nick');
+Irssi::signal_add('message irc action', 'redact_by_nick');
+
 Irssi::settings_add_str('ministryoftruth', 'redact_nicks', '');
