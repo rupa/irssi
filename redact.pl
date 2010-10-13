@@ -1,17 +1,16 @@
-# Redact the seditious statements of your chosen list of nicks with easily
-# cracked encryption.
-#
-# /set redact_nicks nick1 ... nickn
+# Replaces /ignore with easily cracked encryption.
 #
 # Their stuff still gets logged,
-# but you don't have to see them unless you want to,
+# but you don't have to see it unless you want to,
 # in which case you can select the text with yr mouse.
+#
+# should still treat QUIT/JOIN/PART type /ignores normally
 
 use strict;
 use Irssi;
 use vars qw($VERSION %IRSSI);
 
-$VERSION = "0.1";
+$VERSION = "0.2";
 %IRSSI = (
     authors     => "rupa",
     name        => "redact",
@@ -19,19 +18,18 @@ $VERSION = "0.1";
     license     => "BSD",
 );
 
-sub redact_by_nick {
+Irssi::theme_register(['redact', "{msgnick \$0}" . "\0031,1" . "\$1"]);
+
+sub redact_ignored {
     my ($server, $data, $nick, $mask, $target) = @_;
-    if( grep(/^$nick$/, split(' ', Irssi::settings_get_str('redact_nicks'))) ) {
-
-        # black on black
-        $data = "\0031,1" . $data;
-
+    if( $server->ignore_check($nick, $mask, $target, $data, MSGLEVEL_PUBLIC) ) {
+        # strip colors and formatting
+        #$data = Irssi::strip_codes($data);
+        $data =~ s/\x03\d?\d?(,\d?\d?)?|\x02|\x1f|\x16|\x06|\x07//g;
+        $server->printformat($target, MSGLEVEL_PUBLIC, "redact", $nick, $data);
     }
-    Irssi::signal_continue($server, $data, $nick, $mask, $target);
 }
 
-Irssi::signal_add('message public', 'redact_by_nick');
-Irssi::signal_add('message irc action', 'redact_by_nick');
-
-# redact josiah by default
-Irssi::settings_add_str('ministryoftruth', 'redact_nicks', 'redubious');
+Irssi::signal_add_first("message public", "redact_ignored");
+Irssi::signal_add_first("message private", "redact_ignored");
+Irssi::signal_add_first("ctcp action", "redact_ignored");
