@@ -56,8 +56,10 @@ sub youtube {
     while (($tag, $content) = each(%meta)) {
         if( $tag eq 'title' ) {
             unshift @a, $tag.": ".$content;
-        } elsif( $tag eq 'description' ) {
-            push @a, $tag.": ".$content;
+            #} elsif( $tag eq 'description' ) {
+            #$content =~ s/<br( \/)?>/ /g;
+            #$content =~ s/  */ /g;
+            #push @a, $tag.": ".$content;
         }
     }
     my $out = join(" ", @a);
@@ -71,14 +73,41 @@ sub dispatch {
     return if not Irssi::settings_get_bool("youtube");
     my ($server, $msg, $nick, $mask, $chan) = @_;
     $chan = $nick if not $chan;
-    my $out = youtube(split(/ /, $msg));
-    return if not $out;
-    my $win = Irssi::active_win();
-    if( grep(/^$chan$/, @chans) ) {
-        $server->command("/MSG $chan YOUTUBE: ".decode_entities($out));
+
+    my ($reader, $writer);
+    pipe($reader, $writer);
+    my $pid = fork();
+    if( $pid > 0 ) {
+        close($writer);
+        Irssi::pidwait_add($pid);
+        my $out = <$reader>;
+        return if not $out;
+        my $win = Irssi::active_win();
+        if( grep(/^$chan$/, @chans) ) {
+            $out = decode_entities($out);
+            $out = uc($out) if strftime("%m/%d", localtime) eq ("10/22");
+            $server->command("/MSG $chan YOUTUBE: $out");
+        } else {
+            $win->print(decode_entities($out), "CLIENTCRAP");
+        }
     } else {
-        $win->print(decode_entities($out), "CLIENTCRAP");
+        my $data = youtube(split(/ /, $msg));
+        print ($writer $data);
+        close($writer);
+        POSIX::_exit(1);
     }
+
+    #my $out = youtube(split(/ /, $msg));
+    #return if not $out;
+    #my $win = Irssi::active_win();
+    #if( grep(/^$chan$/, @chans) ) {
+    #    $out = decode_entities($out);
+    #    $out = uc($out) if strftime("%m/%d", localtime) eq ("10/22");
+    #    $server->command("/MSG $chan YOUTUBE: $out");
+    #} else {
+    #    $win->print(decode_entities($out), "CLIENTCRAP");
+    #}
+
 }
 
 Irssi::signal_add("message public", "dispatch");
