@@ -73,41 +73,45 @@ sub dispatch {
     return if not Irssi::settings_get_bool("youtube");
     my ($server, $msg, $nick, $mask, $chan) = @_;
     $chan = $nick if not $chan;
+    my @args = ($server, $msg, $nick, $mask, $chan);
 
     my ($reader, $writer);
     pipe($reader, $writer);
     my $pid = fork();
+    if( not defined $pid ) {
+        Irssi::print("Can't fork!");
+        close($reader);
+        close($writer);
+    }
     if( $pid > 0 ) {
         close($writer);
         Irssi::pidwait_add($pid);
-        my $out = <$reader>;
-        return if not $out;
-        my $win = Irssi::active_win();
-        if( grep(/^$chan$/, @chans) ) {
-            $out = decode_entities($out);
-            $out = uc($out) if strftime("%m/%d", localtime) eq ("10/22");
-            $server->command("/MSG $chan YOUTUBE: $out");
-        } else {
-            $win->print(decode_entities($out), "CLIENTCRAP");
-        }
+        my $p;
+        my @pargs = ($reader, \$p, \@args);
+        $p = Irssi::input_add(fileno($reader), INPUT_READ, \&p_input, \@pargs);
     } else {
         my $data = youtube(split(/ /, $msg));
         print ($writer $data);
         close($writer);
         POSIX::_exit(1);
     }
+}
 
-    #my $out = youtube(split(/ /, $msg));
-    #return if not $out;
-    #my $win = Irssi::active_win();
-    #if( grep(/^$chan$/, @chans) ) {
-    #    $out = decode_entities($out);
-    #    $out = uc($out) if strftime("%m/%d", localtime) eq ("10/22");
-    #    $server->command("/MSG $chan YOUTUBE: $out");
-    #} else {
-    #    $win->print(decode_entities($out), "CLIENTCRAP");
-    #}
-
+sub p_input {
+    my ($reader, $pipetag, $argref) = @{$_[0]};
+    my $out = <$reader>;
+    close($reader);
+    Irssi::input_remove($$pipetag);
+    return if not $out;
+    my ($server, $msg, $nick, $mask, $chan) = @{$argref};
+    my $win = Irssi::active_win();
+    if( grep(/^$chan$/, @chans) ) {
+        $out = decode_entities($out);
+        $out = uc($out) if strftime("%m/%d", localtime) eq ("10/22");
+        $server->command("/MSG $chan YOUTUBE: $out");
+    } else {
+        $win->print(decode_entities($out), "CLIENTCRAP");
+    }
 }
 
 Irssi::signal_add("message public", "dispatch");
