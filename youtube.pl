@@ -110,7 +110,8 @@ sub p_input {
         $out = uc($out) if strftime("%m/%d", localtime) eq ("10/22");
         $server->command("/MSG $chan YOUTUBE: $out");
     } else {
-        $win->print(decode_entities($out), "CLIENTCRAP");
+        $out = decode_entities($out);
+        $win->print("$chan - $out", "CLIENTCRAP");
     }
 }
 
