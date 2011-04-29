@@ -23,11 +23,7 @@ my %IRSSI = (
     license     => '',
 );
 
-# channels to publicly display info in
-my @chans = ('#mefi', '#dongs', '#sippin');
-
-print CLIENTCRAP "vids.pl $VERSION loaded.";
-print CLIENTCRAP "/set vids on|off";
+print CLIENTCRAP "loading vids.pl $VERSION ...";
 
 sub youtube {
     my ($id) = @_;
@@ -81,6 +77,7 @@ sub parse_string {
 }
 
 sub dispatch {
+    # don't be blockin', yo
     return if not Irssi::settings_get_bool("vids");
     my ($server, $msg, $nick, $mask, $chan) = @_;
     $chan = $nick if not $chan;
@@ -102,7 +99,7 @@ sub dispatch {
         $p = Irssi::input_add(fileno($reader), INPUT_READ, \&p_input, \@pargs);
     } else {
         foreach( parse_string($msg) ) {
-            print ($writer $_->{service} . ": " . $_->{title} . " ");
+            print ($writer $_->{service} . ": " . $_->{title} . ". ");
         }
         close($writer);
         POSIX::_exit(1);
@@ -118,7 +115,7 @@ sub p_input {
     my ($server, $msg, $nick, $mask, $chan) = @{$argref};
     my $win = Irssi::active_win();
     $out = decode_entities($out);
-    if( grep(/^$chan$/, @chans) ) {
+    if( grep(/^$chan$/, split(/ +/, Irssi::settings_get_str("vidchans")) ) ) {
         $out = uc($out) if strftime("%m/%d", localtime) eq ("10/22");
         $server->command("/MSG $chan $out");
     } else {
@@ -129,3 +126,8 @@ sub p_input {
 Irssi::signal_add("message public", "dispatch");
 Irssi::signal_add("message own_public", "dispatch");
 Irssi::settings_add_bool("vids", "vids", 0);
+Irssi::settings_add_str("vids", "vidchans", "");
+
+print CLIENTCRAP "/set vids on|off";
+print CLIENTCRAP "/set vidchans #chan1 #chan2 ...";
+print CLIENTCRAP "Active chans: " . Irssi::settings_get_str("vidchans");
