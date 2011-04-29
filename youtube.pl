@@ -1,4 +1,6 @@
 #!/usr/bin/perl
+# Note vids.pl supports other services and doesn't screenscrape.
+# You probably want to use that instead.
 
 use strict;
 use Irssi;
@@ -105,12 +107,12 @@ sub p_input {
     return if not $out;
     my ($server, $msg, $nick, $mask, $chan) = @{$argref};
     my $win = Irssi::active_win();
+    $out = decode_entities($out);
+    $out =~ s/title/YOUTUBE/;
     if( grep(/^$chan$/, @chans) ) {
-        $out = decode_entities($out);
         $out = uc($out) if strftime("%m/%d", localtime) eq ("10/22");
-        $server->command("/MSG $chan YOUTUBE: $out");
+        $server->command("/MSG $chan $out");
     } else {
-        $out = decode_entities($out);
         $win->print("$chan - $out", "CLIENTCRAP");
     }
 }
