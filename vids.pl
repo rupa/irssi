@@ -138,6 +138,7 @@ sub dispatch {
         $p = Irssi::input_add(fileno($reader), INPUT_READ, \&p_input, \@pargs);
     } else {
         foreach( parse_string($msg) ) {
+            next if not $_->{title};
             print ($writer $_->{service} . ": " . $_->{title} . ". ");
         }
         close($writer);
