@@ -100,7 +100,7 @@ sub parse_string {
     my @out = ();
     foreach (@words) {
         next if $_ !~ /^http:\/\//;
-        if ( $_ =~ /http:\/\/(www\.)?youtube\.com\/watch\?v=([^\.\!\?,&]*)/ ) {
+        if ( $_ =~ /http:\/\/(www\.)?youtube\.com\/watch\?.*v=([^\.\!\?\#,&]*)/ ) {
             push(@out, {youtube($2)});
         } elsif( $_ =~ /^http:\/\/(www\.)?vimeo\.com\/([^\.\!\?,]*)/ ) {
             push(@out, {vimeo($2)});
@@ -139,7 +139,7 @@ sub dispatch {
     } else {
         foreach( parse_string($msg) ) {
             next if not $_->{title};
-            print ($writer $_->{service} . ": " . $_->{title} . ". ");
+            print ($writer $_->{service} . ": " . $_->{title});
         }
         close($writer);
         POSIX::_exit(1);
