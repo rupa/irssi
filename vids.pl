@@ -139,7 +139,7 @@ sub dispatch {
     } else {
         foreach( parse_string($msg) ) {
             next if not $_->{title};
-            print ($writer $_->{service} . ": " . $_->{title});
+            print ($writer " " . $_->{service} . ": " . $_->{title});
         }
         close($writer);
         POSIX::_exit(1);
@@ -157,9 +157,9 @@ sub p_input {
     $out = decode_entities($out);
     if( grep(/^$chan$/, split(/ +/, Irssi::settings_get_str("vidchans")) ) ) {
         $out = uc($out) if strftime("%m/%d", localtime) eq ("10/22");
-        $server->command("/MSG $chan $out");
+        $server->command("/MSG $chan$out");
     } else {
-        $win->print("$chan - $out", "CLIENTCRAP");
+        $win->print("$chan -$out", "CLIENTCRAP");
     }
 }
 
