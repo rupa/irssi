@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-# Note: this replaces youtube.pl
+# Note: this replaces youtube.pl and vids.pl
 
 use strict;
 use Irssi;
@@ -7,6 +7,7 @@ use POSIX;
 use XML::Simple;
 use LWP::Simple;
 use HTML::Entities;
+use HTML::TreeBuilder;
 use JSON;
 use Encode;
 use Net::Netrc;
@@ -26,16 +27,16 @@ my %IRSSI = (
     authors     => 'rupa',
     contact     => '',
     name        => '',
-    description => 'print some info about video links',
+    description => 'print some info about links',
     license     => '',
 );
 
-print CLIENTCRAP "loading vids.pl $VERSION ...";
+print CLIENTCRAP "loading linkinfo.pl $VERSION ...";
 
 sub youtube {
     my ($id) = @_;
     #print "youtube $id";
-    my %video = { service => "YOUTUBE", title => "", description => "" };
+    my %video = ( service => "YOUTUBE", title => "", description => "" );
     my $content = get "http://gdata.youtube.com/feeds/api/videos/$id";
     defined $content or return %video;
     my $ref = XMLin($content);
@@ -53,7 +54,7 @@ sub youtube {
 
 sub vimeo {
     my ($id) = @_;
-    my %video = { service => "VIMEO", title => "", description => "" };
+    my %video = ( service => "VIMEO", title => "", description => "" );
     print "vimeo $id";
     my $content = get "http://vimeo.com/api/v2/video/$id.json";
     defined $content or return %video;
@@ -71,7 +72,7 @@ sub vimeo {
 
 sub flickr {
     my ($id) = @_;
-    my %photo = { service => "FLICKR", title => "", description => "" };
+    my %photo = ( service => "FLICKR", title => "", description => "" );
     my $url = "http://api.flickr.com/services/rest/";
     my $query = "method=flickr.photos.getInfo&api_key=$flickr_api&photo_id=$id";
     my $content = get "$url?$query";
@@ -91,23 +92,36 @@ sub flickr {
     return %photo;
 }
 
+sub amazon {
+    my ($url) = @_;
+    my %thing = ( service => "AMAZON", title => "", description => "" );
+    my $content = get $url;
+    my $tree = HTML::TreeBuilder->new_from_content($content);
+    $thing{'title'} = $tree->look_down('_tag', 'title')->as_text;
+    $thing{'title'} =~ s/amazon\.com:? ?//i;
+    $tree->delete();
+    return %thing;
+}
+
 sub parse_string {
     # take a string and return an array of hashes {service, title, description}
-    # one per video
     my ($str) = @_;
     #print "parsing $str";
     my @words = split(/ /, $str);
     my @out = ();
     foreach (@words) {
-        next if $_ !~ /^http:\/\//;
-        if ( $_ =~ /http:\/\/(www\.)?youtube\.com\/watch\?.*v=([^\.\!\?\#,&]*)/ ) {
+        next if $_ !~ /^https?:\/\//;
+        if ( $_ =~ /https?:\/\/(www\.)?youtube\.com\/watch\?.*v=([^\.\!\?\#,&]*)/ ) {
             push(@out, {youtube($2)});
-        } elsif( $_ =~ /^http:\/\/(www\.)?vimeo\.com\/([^\.\!\?,]*)/ ) {
+        } elsif( $_ =~ /^https?:\/\/(www\.)?vimeo\.com\/([^\.\!\?,]*)/ ) {
             push(@out, {vimeo($2)});
+        } elsif( $_ =~ /^http:\/\/(www\.)?amazon\.com\// ) {
+            push(@out, {amazon($_)});
+            next;
         } elsif( $flickr_api ) {
-            if( $_ =~ /http:\/\/(www\.)?flickr\.com\/photos\/[^\/]+\/([^\/]+)\// ) {
+            if( $_ =~ /https?:\/\/(www\.)?flickr\.com\/photos\/[^\/]+\/([^\/]+)\// ) {
                 push(@out, {flickr($2)});
-            } elsif( $_ =~ /http:\/\/[^\.]+\.static\.flickr\.com\/[^\/]+\/([^_]+)_/ ) { 
+            } elsif( $_ =~ /https?:\/\/[^\.]+\.static\.flickr\.com\/[^\/]+\/([^_]+)_/ ) { 
                 push(@out, {flickr($1)});
             }
         }
@@ -117,7 +131,7 @@ sub parse_string {
 
 sub dispatch {
     # don't be blockin', yo
-    return if not Irssi::settings_get_bool("vids");
+    return if not Irssi::settings_get_bool("linkinfo");
     my ($server, $msg, $nick, $mask, $chan) = @_;
     $chan = $nick if not $chan;
     my @args = ($server, $msg, $nick, $mask, $chan);
@@ -155,7 +169,7 @@ sub p_input {
     my ($server, $msg, $nick, $mask, $chan) = @{$argref};
     my $win = Irssi::active_win();
     $out = decode_entities($out);
-    if( grep(/^$chan$/, split(/ +/, Irssi::settings_get_str("vidchans")) ) ) {
+    if( grep(/^$chan$/, split(/ +/, Irssi::settings_get_str("linkinfochans")) ) ) {
         $out = uc($out) if strftime("%m/%d", localtime) eq ("10/22");
         $server->command("/MSG $chan$out");
     } else {
@@ -165,9 +179,9 @@ sub p_input {
 
 Irssi::signal_add("message public", "dispatch");
 Irssi::signal_add("message own_public", "dispatch");
-Irssi::settings_add_bool("vids", "vids", 0);
-Irssi::settings_add_str("vids", "vidchans", "");
+Irssi::settings_add_bool("linkinfo", "linkinfo", 0);
+Irssi::settings_add_str("linkinfo", "linkinfochans", "");
 
-print CLIENTCRAP "/set vids on|off";
-print CLIENTCRAP "/set vidchans #chan1 #chan2 ...";
-print CLIENTCRAP "Active chans: " . Irssi::settings_get_str("vidchans");
+print CLIENTCRAP "/set linkinfo on|off";
+print CLIENTCRAP "/set linkinfochans #chan1 #chan2 ...";
+print CLIENTCRAP "Active chans: " . Irssi::settings_get_str("linkinfochans");
