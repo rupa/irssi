@@ -1,8 +1,8 @@
 # Replaces /ignore with easily cracked encryption.
 #
-# Their stuff still gets logged,
-# but you don't have to see it unless you want to,
-# in which case you can select the text with yr mouse.
+# Their stuff still gets logged, but you don't have to see it unless you want
+# to, in which case, in most terminals, you can select the text with your
+# mouse.
 #
 # should still treat QUIT/JOIN/PART type /ignores normally
 
