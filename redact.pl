@@ -15,6 +15,7 @@ $VERSION = "0.2";
     authors     => "rupa",
     name        => "redact",
     description => "redact the words of those tiresome or officious.",
+    url         => "https://github.com/rupa/irssi",
     license     => "BSD",
 );
 
